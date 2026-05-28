@@ -1,12 +1,17 @@
-# ⚖️ CaseLens AI
 
-CaseLens AI is a local-first RAG (Retrieval-Augmented Generation) application for analyzing and comparing PDFs such as legal case laws, research papers, resumes, and policy documents.
+
+# 📄 PDFLens AI
+
+PDFLens AI is a local-first RAG (Retrieval-Augmented Generation) application for analyzing and comparing PDFs such as legal case laws, research papers, resumes, and policy documents.
+
+The project uses semantic search, vector embeddings, and local LLM inference to generate grounded responses directly from uploaded documents.
 
 Built using:
 - Streamlit
 - ChromaDB
 - SentenceTransformers
 - Ollama
+- Llama 3.2
 - Mistral
 
 ---
@@ -14,14 +19,16 @@ Built using:
 ## 🚀 Features
 
 - 📄 Upload multiple PDFs (up to 200 pages each)
-- 💬 Ask questions about documents
+- 💬 Ask questions about uploaded documents
 - 📝 Generate document-wise summaries
-- 📊 Create comparison tables
+- 📊 Create structured comparison tables
 - 📅 Extract timelines and chronological events
 - 🔍 Semantic search using vector embeddings
-- ⚡ Fully local AI inference
+- ⚡ Fully local AI inference with Ollama
 - 💾 Persistent ChromaDB vector storage
 - 🧵 Streaming LLM responses
+- 📂 Document-level retrieval filtering
+- 🏗️ Modular architecture (`config.py`, `rag.py`, `llm.py`, `app.py`)
 
 ---
 
@@ -48,10 +55,21 @@ LLM Response
 The system retrieves only the most relevant chunks before generating answers.
 
 This improves:
-- accuracy
 - grounding
+- retrieval accuracy
 - scalability
 - hallucination reduction
+
+---
+
+## 🏗️ Project Architecture
+
+```text
+config.py  → settings & performance tuning
+rag.py     → chunking, embeddings, ChromaDB retrieval
+llm.py     → Ollama interaction & prompt builders
+app.py     → Streamlit UI
+```
 
 ---
 
@@ -65,41 +83,64 @@ This improves:
 | Embedding Model | all-MiniLM-L6-v2 |
 | Vector DB | ChromaDB |
 | LLM Runtime | Ollama |
-| LLM | Mistral |
+| LLM | llama3.2 |
 | Language | Python |
 
 ---
 
-## 🤖 Why Mistral?
+## 🤖 Why Llama 3.2?
 
-Mistral was chosen because it:
+Llama 3.2 was chosen because it:
 - runs locally
-- provides strong reasoning
-- is lightweight and fast
-- performs well for summarization and document analysis
+- is lightweight and RAM-efficient
+- works well on MacBook Air hardware
+- provides fast inference
+- performs well for summarization and Q&A tasks
 
 ---
 
 ## ⚡ Installation
 
-### 1. Install dependencies
+### 1. Clone the repository
 
 ```bash
-pip install streamlit chromadb sentence-transformers pymupdf ollama
+git clone <your-repo-url>
+cd pdflens-ai
 ```
 
-### 2. Pull Mistral model
+---
+
+### 2. Create virtual environment
 
 ```bash
-ollama pull mistral
+python3.11 -m venv .venv
+source .venv/bin/activate
+```
+
+---
+
+### 3. Install dependencies
+
+```bash
+pip install streamlit chromadb sentence-transformers pymupdf ollama torch torchvision
+```
+
+---
+
+### 4. Pull Llama 3.2 model
+
+```bash
+ollama pull llama3.2
 ```
 
 ---
 
 ## ▶️ Run the App
 
+Recommended optimized command for low-memory systems:
+
 ```bash
-streamlit run app.py --server.fileWatcherType none
+TOKENIZERS_PARALLELISM=false OMP_NUM_THREADS=1 streamlit run app.py --server.fileWatcherType none
 ```
 
 Open:
@@ -120,12 +161,14 @@ http://localhost:8501
 - Hierarchical Summarization
 - Grounded AI Responses
 - Local-first AI Systems
+- Streaming LLM Generation
 
 ---
 
 ## 📂 Example Use Cases
 
 - Legal document comparison
+- Human-rights case analysis
 - Research paper summarization
 - Policy document exploration
 

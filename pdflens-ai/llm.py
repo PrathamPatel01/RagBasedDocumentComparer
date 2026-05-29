@@ -1,13 +1,5 @@
-"""
-llm.py — system prompt, Ollama streaming, and all prompt-builder functions.
-No Streamlit imports here; returns generators or strings only.
-"""
-
 import ollama
 from config import MODEL_NAME
-
-
-# ─── System Prompt ────────────────────────────────────────────────────────────
 
 SYSTEM_PROMPT = """You are CaseLens AI, a precise document analysis assistant.
 
@@ -17,12 +9,9 @@ Rules:
 - Always cite the source filename and chunk number where relevant.
 - Be structured, clear, and concise.
 - Avoid speculation or external knowledge."""
-
-
-# ─── Core Streaming ───────────────────────────────────────────────────────────
+    
 
 def ask_llm_stream(prompt: str):
-    """Yield response tokens from Ollama one at a time."""
     try:
         stream = ollama.chat(
             model=MODEL_NAME,
@@ -44,11 +33,8 @@ def ask_llm_stream(prompt: str):
 
 
 def collect_stream(prompt: str) -> str:
-    """Run ask_llm_stream and collect the full response as a single string."""
     return "".join(ask_llm_stream(prompt))
 
-
-# ─── Prompt Builders ──────────────────────────────────────────────────────────
 
 def build_qa_prompt(context: str, question: str) -> str:
     return f"""Context:
@@ -95,7 +81,7 @@ Document filename: {filename}
 Context:
 {context}
 
-Return this structure (plain text, no markdown):
+Return this structure:
 
 Document: {filename}
 Document type:
@@ -118,6 +104,7 @@ Rules:
 
 def build_comparison_table_prompt(filenames: list[str], combined_summaries: str) -> str:
     filename_columns = " | ".join(filenames)
+
     return f"""Compare the following documents using ONLY the summaries provided below.
 
 {combined_summaries}
@@ -139,24 +126,29 @@ Include these rows:
 - Best use case
 
 Rules:
-- Compare by document filename only. Do not treat sections inside one PDF as separate documents.
-- Write "Not available" where information is missing. Do not invent facts."""
+- Compare by document filename only.
+- Write "Not available" where information is missing.
+- Do not invent facts."""
 
 
 def build_timeline_prompt(timeline_context: str) -> str:
-    return f"""Create a combined chronological timeline from the documents below.
+    return f"""Create a chronological timeline using ONLY the context below.
 
 Context:
 {timeline_context}
 
-Output a markdown table using exactly this format:
+Output a markdown table:
 
-| Date / Period | Event | Source Document |
-|---|---|---|
+| Date / Period | Event | Source Document | Source Chunk |
+|---|---|---|---|
 
 Rules:
-- Include only dates or periods explicitly found in the documents.
-- If an event has no date, write "Not dated" in the Date column.
-- Order events chronologically where possible.
-- Always include the source document filename.
-- Do not invent events or dates."""
+- Include ONLY events with an explicit date or period in the context.
+- Do NOT include "Not dated" rows.
+- Do NOT use document titles as events.
+- Do NOT create rows from summaries unless they contain a specific dated event.
+- Merge duplicate events.
+- Sort chronologically where possible.
+- Every row must cite the filename and chunk number.
+- If no dated events are present, say exactly: No explicit dated events found.
+"""

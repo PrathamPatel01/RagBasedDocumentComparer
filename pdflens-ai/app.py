@@ -16,6 +16,7 @@ from rag import (
     is_already_indexed,
     get_indexed_filenames,
     retrieve_context,
+    retrieve_timeline_context,
     clear_vector_db,
 )
 from llm import (
@@ -27,6 +28,8 @@ from llm import (
     build_comparison_table_prompt,
     build_timeline_prompt,
 )
+
+
 
 st.set_page_config(page_title="PDFLens AI", layout="wide", page_icon="⚖️")
 
@@ -310,24 +313,25 @@ with tab3:
 
 
 # ── Tab 4: Timeline ───────────────────────────────────────────────────────────
+# ── Tab 4: Timeline ───────────────────────────────────────────────────────────
 
 with tab4:
     st.subheader("Chronological timeline")
     st.caption(
-        "Extracts all dates and time-referenced events found across your documents "
-        "and orders them chronologically."
+        "Extracts only explicitly dated events from your indexed documents. "
+        "Undated summaries and document titles are ignored."
     )
 
     if st.button("Generate Timeline", disabled=not docs_ready, type="primary"):
-        timeline_context = ""
+        timeline_context = retrieve_timeline_context(top_k_per_doc=60)
 
-        for filename in get_indexed_filenames():
-            context = retrieve_context(
-                query="dates timeline chronology events publication year sequence history",
-                top_k=20,
-                filename_filter=filename,
-            )
-            timeline_context += f"\n\n===== DOCUMENT: {filename} =====\n{context}"
+        if not timeline_context.strip():
+            st.warning("No explicit dates found in the indexed documents.")
+        else:
+            with st.spinner("Extracting dated timeline events…"):
+                st.write_stream(
+                    ask_llm_stream(build_timeline_prompt(timeline_context))
+                )
 
-        with st.spinner("Extracting timeline events…"):
-            st.write_stream(ask_llm_stream(build_timeline_prompt(timeline_context)))
+            with st.expander("📎 View timeline context"):
+                st.code(timeline_context)

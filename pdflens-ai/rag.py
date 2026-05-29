@@ -8,6 +8,7 @@ import fitz
 import chromadb
 from sentence_transformers import SentenceTransformer
 from uuid import uuid4
+import re 
 
 from config import (
     EMBEDDING_MODEL,
@@ -193,3 +194,46 @@ def clear_vector_db() -> None:
     except Exception:
         pass
     get_collection()  # recreates it empty
+
+
+    import re
+
+DATE_RE = re.compile(
+    r"\b("
+    r"\d{1,2}\s+[A-Z][a-z]+\s+\d{4}|"
+    r"[A-Z][a-z]+\s+\d{1,2},\s+\d{4}|"
+    r"\d{4}-\d{2}-\d{2}|"
+    r"\b\d{4}\b"
+    r")\b"
+)
+
+
+def retrieve_timeline_context(top_k_per_doc: int = 60) -> str:
+    collection = get_collection()
+
+    if collection.count() == 0:
+        return ""
+
+    context = ""
+
+    for filename in get_indexed_filenames():
+        results = collection.get(
+            where={"filename": filename},
+            include=["documents", "metadatas"],
+        )
+
+        dated_chunks = []
+
+        for doc, meta in zip(results["documents"], results["metadatas"]):
+            if DATE_RE.search(doc):
+                dated_chunks.append((meta["chunk"], doc))
+
+        dated_chunks = dated_chunks[:top_k_per_doc]
+
+        if dated_chunks:
+            context += f"\n\n===== DOCUMENT: {filename} =====\n"
+
+            for chunk_num, doc in dated_chunks:
+                context += f"\nSource: {filename} | Chunk {chunk_num}\n{doc}\n"
+
+    return context

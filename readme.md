@@ -2,7 +2,7 @@
 
 # 📄 PDFLens AI
 
-PDFLens AI is a local-first RAG (Retrieval-Augmented Generation) application for analyzing and comparing PDFs such as legal case laws, research papers, resumes, and policy documents.
+PDFLens AI is a local-first RAG (Retrieval-Augmented Generation) application for analyzing and comparing PDFs such as legal case laws, research papers,and policy documents.
 
 The project uses semantic search, vector embeddings, and local LLM inference to generate grounded responses directly from uploaded documents.
 

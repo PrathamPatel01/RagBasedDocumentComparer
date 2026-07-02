@@ -11,7 +11,7 @@ CHROMA_PATH = "./chroma_db"
 COLLECTION_NAME = "documents"
  
 # ── Document limits ───────────────────────────────────────────────────────────
-MAX_PAGES = 200
+MAX_PAGES = 201
 CHUNK_SIZE = 850
 CHUNK_OVERLAP = 200
 EMBED_BATCH_SIZE = 16   
